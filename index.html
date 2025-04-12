@@ -1,1 +1,125 @@
-<!-- MockDashboard_StudentOnly (Placeholder) -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Teacher Dashboard – Full GCSE Mock Exam 8700</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f8f8f8; }
+    h1 { color: #003366; }
+    textarea, input[type="text"], select { width: 100%; margin-bottom: 10px; padding: 8px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #003366; color: #fff; }
+    button { padding: 10px 20px; background: #003366; color: white; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Teacher Dashboard – Full GCSE Mock Exam 8700</h1>
+  <p><strong>Password: TOK123</strong> (This dashboard is for teacher use only.)</p>
+  <p>Paste student data below (JSON format or extracted from browser localStorage):</p>
+  <textarea id="studentData" rows="10" placeholder='Paste student data here...'></textarea>
+  <button onclick="loadData()">Load Responses</button>
+
+  <div id="markingInterface"></div>
+
+  <script>
+    function loadData() {
+      const dataArea = document.getElementById('studentData');
+      let parsed = {};
+      try {
+        parsed = JSON.parse(dataArea.value);
+      } catch (e) {
+        alert("Invalid JSON format. Please check and try again.");
+        return;
+      }
+
+      const container = document.getElementById('markingInterface');
+      container.innerHTML = '';
+
+      let table = '<table><tr><th>Exam ID</th><th>Q1–Q4 Marks</th><th>AO5</th><th>AO6</th><th>Feedback</th></tr>';
+
+      for (const [id, response] of Object.entries(parsed)) {
+        table += `<tr>
+          <td>${id}</td>
+          <td><input type="text" name="qMarks_${id}" placeholder="e.g. 4,6,5,9"></td>
+          <td><input type="text" name="ao5_${id}" placeholder="e.g. 20"></td>
+          <td><input type="text" name="ao6_${id}" placeholder="e.g. 14"></td>
+          <td><input type="text" name="feedback_${id}" placeholder="Optional comment"></td>
+        </tr>`;
+      }
+
+      table += '</table><br><button onclick="exportCSV()">Export as CSV</button><br><button onclick="exportDOCX()">Export as DOCX</button>';
+      container.innerHTML = table;
+    }
+
+    function exportCSV() {
+      const rows = [["Exam ID", "Q1–Q4", "AO5", "AO6", "Feedback"]];
+      const inputs = document.querySelectorAll("input");
+
+      const dataMap = {};
+      inputs.forEach(input => {
+        const [type, id] = input.name.split("_");
+        if (!dataMap[id]) dataMap[id] = {};
+        dataMap[id][type] = input.value;
+      });
+
+      for (const id in dataMap) {
+        const row = [
+          id,
+          dataMap[id]["qMarks"] || "",
+          dataMap[id]["ao5"] || "",
+          dataMap[id]["ao6"] || "",
+          dataMap[id]["feedback"] || ""
+        ];
+        rows.push(row);
+      }
+
+      const csvContent = rows.map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "MockExam_Marks_Report.csv";
+      link.click();
+    }
+
+    function exportDOCX() {
+      const rows = [["Exam ID", "Q1–Q4", "AO5", "AO6", "Feedback"]];
+      const inputs = document.querySelectorAll("input");
+
+      const dataMap = {};
+      inputs.forEach(input => {
+        const [type, id] = input.name.split("_");
+        if (!dataMap[id]) dataMap[id] = {};
+        dataMap[id][type] = input.value;
+      });
+
+      for (const id in dataMap) {
+        const row = [
+          id,
+          dataMap[id]["qMarks"] || "",
+          dataMap[id]["ao5"] || "",
+          dataMap[id]["ao6"] || "",
+          dataMap[id]["feedback"] || ""
+        ];
+        rows.push(row);
+      }
+
+      const doc = new Document();
+      const table = doc.createTable(rows.length, rows[0].length);
+
+      for (let i = 0; i < rows.length; i++) {
+        for (let j = 0; j < rows[i].length; j++) {
+          table.getCell(i, j).setText(rows[i][j]);
+        }
+      }
+
+      const blob = new Blob([doc], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "MockExam_Marks_Report.docx";
+      link.click();
+    }
+  </script>
+</body>
+</html>
