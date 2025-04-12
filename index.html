@@ -1,125 +1,49 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Teacher Dashboard – Full GCSE Mock Exam 8700</title>
+  <meta charset="UTF-8" />
+  <title>Pupil Dashboard – AQA 8700 English Language Mock</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f8f8f8; }
-    h1 { color: #003366; }
-    textarea, input[type="text"], select { width: 100%; margin-bottom: 10px; padding: 8px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: #fff; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #003366; color: #fff; }
-    button { padding: 10px 20px; background: #003366; color: white; border: none; cursor: pointer; }
+    body { font-family: Arial, sans-serif; background: #eef2f5; margin: 0; padding: 0; }
+    header { background: #fff; padding: 20px; text-align: center; border-bottom: 4px solid #00539C; }
+    header img { height: 80px; }
+    header h1 { margin: 10px 0 5px; }
+    header h2 { margin: 0; font-weight: normal; font-size: 16px; color: #444; }
+    .container { max-width: 900px; margin: 30px auto; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+    .card { background: #f7f9fc; padding: 20px; margin: 20px auto; border: 1px solid #ccc; border-radius: 8px; max-width: 500px; }
+    a.button {
+      display: inline-block; margin-top: 15px; padding: 10px 20px;
+      background: #00539C; color: white; text-decoration: none; border-radius: 4px;
+      font-size: 16px;
+    }
+    a.button:hover { background: #003f77; }
+    footer { text-align: center; font-size: 12px; color: #777; margin-top: 40px; padding: 20px; }
   </style>
 </head>
 <body>
-  <h1>Teacher Dashboard – Full GCSE Mock Exam 8700</h1>
-  <p><strong>Password: TOK123</strong> (This dashboard is for teacher use only.)</p>
-  <p>Paste student data below (JSON format or extracted from browser localStorage):</p>
-  <textarea id="studentData" rows="10" placeholder='Paste student data here...'></textarea>
-  <button onclick="loadData()">Load Responses</button>
+  <header>
+    <img src="logo.png" alt="School Logo">
+    <h1>Gandhi Memorial Intercontinental School Semarang</h1>
+    <h2>Pupil Dashboard – AQA English Language 8700 (Q5 Writing Practice)</h2>
+  </header>
 
-  <div id="markingInterface"></div>
+  <div class="container">
+    <div class="card">
+      <h3>Practice Paper 1 – Creative Writing</h3>
+      <p>Explore descriptive or narrative prompts based on an image or theme.</p>
+      <a href="Machine5A_Paper1/index.html" class="button">Start Paper 1 Practice</a>
+    </div>
 
-  <script>
-    function loadData() {
-      const dataArea = document.getElementById('studentData');
-      let parsed = {};
-      try {
-        parsed = JSON.parse(dataArea.value);
-      } catch (e) {
-        alert("Invalid JSON format. Please check and try again.");
-        return;
-      }
+    <div class="card">
+      <h3>Practice Paper 2 – Viewpoint Writing</h3>
+      <p>Practice formal non-fiction: letters, articles, or speeches with purpose.</p>
+      <a href="Machine5B_Paper2/index.html" class="button">Start Paper 2 Practice</a>
+    </div>
+  </div>
 
-      const container = document.getElementById('markingInterface');
-      container.innerHTML = '';
-
-      let table = '<table><tr><th>Exam ID</th><th>Q1–Q4 Marks</th><th>AO5</th><th>AO6</th><th>Feedback</th></tr>';
-
-      for (const [id, response] of Object.entries(parsed)) {
-        table += `<tr>
-          <td>${id}</td>
-          <td><input type="text" name="qMarks_${id}" placeholder="e.g. 4,6,5,9"></td>
-          <td><input type="text" name="ao5_${id}" placeholder="e.g. 20"></td>
-          <td><input type="text" name="ao6_${id}" placeholder="e.g. 14"></td>
-          <td><input type="text" name="feedback_${id}" placeholder="Optional comment"></td>
-        </tr>`;
-      }
-
-      table += '</table><br><button onclick="exportCSV()">Export as CSV</button><br><button onclick="exportDOCX()">Export as DOCX</button>';
-      container.innerHTML = table;
-    }
-
-    function exportCSV() {
-      const rows = [["Exam ID", "Q1–Q4", "AO5", "AO6", "Feedback"]];
-      const inputs = document.querySelectorAll("input");
-
-      const dataMap = {};
-      inputs.forEach(input => {
-        const [type, id] = input.name.split("_");
-        if (!dataMap[id]) dataMap[id] = {};
-        dataMap[id][type] = input.value;
-      });
-
-      for (const id in dataMap) {
-        const row = [
-          id,
-          dataMap[id]["qMarks"] || "",
-          dataMap[id]["ao5"] || "",
-          dataMap[id]["ao6"] || "",
-          dataMap[id]["feedback"] || ""
-        ];
-        rows.push(row);
-      }
-
-      const csvContent = rows.map(e => e.join(",")).join("\n");
-      const blob = new Blob([csvContent], { type: "text/csv" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "MockExam_Marks_Report.csv";
-      link.click();
-    }
-
-    function exportDOCX() {
-      const rows = [["Exam ID", "Q1–Q4", "AO5", "AO6", "Feedback"]];
-      const inputs = document.querySelectorAll("input");
-
-      const dataMap = {};
-      inputs.forEach(input => {
-        const [type, id] = input.name.split("_");
-        if (!dataMap[id]) dataMap[id] = {};
-        dataMap[id][type] = input.value;
-      });
-
-      for (const id in dataMap) {
-        const row = [
-          id,
-          dataMap[id]["qMarks"] || "",
-          dataMap[id]["ao5"] || "",
-          dataMap[id]["ao6"] || "",
-          dataMap[id]["feedback"] || ""
-        ];
-        rows.push(row);
-      }
-
-      const doc = new Document();
-      const table = doc.createTable(rows.length, rows[0].length);
-
-      for (let i = 0; i < rows.length; i++) {
-        for (let j = 0; j < rows[i].length; j++) {
-          table.getCell(i, j).setText(rows[i][j]);
-        }
-      }
-
-      const blob = new Blob([doc], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "MockExam_Marks_Report.docx";
-      link.click();
-    }
-  </script>
+  <footer>
+    Sandra The | Vice Principal – March 2025<br />
+    All writing practice data is stored in-browser only. No server or internet upload. GDPR safe.
+  </footer>
 </body>
 </html>
