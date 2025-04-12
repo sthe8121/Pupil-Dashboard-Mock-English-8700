@@ -1,1 +1,228 @@
-<!-- Machine 5B - Paper 2 Mock Exam (Placeholder) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Machine 5B – Paper 2 Writing Practice (Q5)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
+    header { background: white; padding: 20px; text-align: center; border-bottom: 3px solid #00539C; }
+    header img { height: 80px; }
+    header h1 { margin: 10px 0 5px; }
+    header h2 { margin: 0; font-weight: normal; font-size: 16px; color: #555; }
+    .section { background: white; padding: 20px; margin: 20px auto; max-width: 900px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    textarea { width: 100%; height: 300px; margin-top: 10px; font-size: 14px; padding: 10px; font-family: monospace; }
+    input[type="text"], input[type="password"], input[type="number"] {
+      padding: 8px; width: 250px; font-size: 14px; margin-top: 5px;
+    }
+    button { padding: 8px 16px; font-size: 14px; margin-top: 10px; }
+    footer { text-align: center; margin-top: 40px; font-size: 12px; color: #777; }
+    .hidden { display: none; }
+    .counter { margin-top: 5px; font-size: 14px; color: #333; }
+    .entry { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+    .marked { background: #e6ffe6; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="../logo.png" alt="School Logo" />
+    <h1>Gandhi Memorial Intercontinental School Semarang</h1>
+    <h2>Machine 5B – Paper 2 Writing Practice (Q5)</h2>
+  </header>
+
+  <div class="section" id="loginBox">
+    <h3>Student Login</h3>
+    <input type="text" id="examId" placeholder="Enter Exam ID" />
+    <button onclick="startWriting()">Start</button>
+    <p style="margin-top:10px;">Teachers: <button onclick="toggleTeacherMode()">Enter Teacher Mode</button></p>
+    <p id="loginError" style="color:red; display:none;">Please enter a valid Exam ID.</p>
+  </div>
+
+  <div class="section hidden" id="editorBox">
+    <h3>Paper 2 Prompt</h3>
+    <button onclick="generatePrompt()">Generate Prompt</button>
+    <p><strong>Prompt:</strong> <span id="promptText">None selected yet</span></p>
+    <textarea id="writingArea" placeholder="Write your response here..."></textarea>
+    <p class="counter"><span id="charCount">Characters: 0</span> | <span id="wordCount">Words: 0</span></p>
+    <p><em>Tip: Aim for 400–600 words. Adapt tone and form to audience and purpose.</em></p>
+    <button onclick="submitResponse()">Submit</button>
+    <button onclick="downloadTXT()">Download as .txt</button>
+  </div>
+
+  <div class="section hidden" id="teacherLoginBox">
+    <h3>Teacher Login</h3>
+    <input type="password" id="teacherPassword" placeholder="Enter password" />
+    <button onclick="validateTeacher()">Access</button>
+    <p id="teacherError" style="color:red; display:none;">Incorrect password.</p>
+  </div>
+
+  <div class="section hidden" id="teacherPanel">
+    <h3>Teacher Panel – Submissions</h3>
+    <div id="submissionList"></div>
+    <div id="submissionView" class="hidden">
+      <hr>
+      <p><strong>Exam ID:</strong> <span id="viewId"></span></p>
+      <p><strong>Prompt:</strong> <span id="viewPrompt"></span></p>
+      <textarea id="viewResponse" readonly></textarea>
+      <p><strong>Pupil Name:</strong> <input type="text" id="pupilName" placeholder="Optional for DOCX" /></p>
+      <p>
+        AO5: <input type="number" id="ao5" min="0" max="24" /> /
+        AO6: <input type="number" id="ao6" min="0" max="16" />
+      </p>
+      <textarea id="feedback" placeholder="Enter feedback here..."></textarea>
+      <button onclick="saveMarks()">Save & Mark</button>
+      <button onclick="downloadTXTTeacher()">Download .txt</button>
+    </div>
+  </div>
+
+  <footer>
+    Sandra The | Vice Principal   March 2025<br />
+    All data stored in-browser only. No information is uploaded. GDPR-safe.
+  </footer>
+
+  <script>
+    let currentId = "";
+    let currentPrompt = "";
+
+    const prompts = [
+      "Write a letter to your local newspaper about a community issue you care about.",
+      "Write a speech encouraging young people to volunteer more.",
+      "Write an article for a school newsletter arguing for or against school uniforms.",
+      "Write a letter to your headteacher suggesting an improvement for student wellbeing."
+    ];
+
+    function generatePrompt() {
+      const random = prompts[Math.floor(Math.random() * prompts.length)];
+      document.getElementById("promptText").innerText = random;
+      currentPrompt = random;
+    }
+
+    function startWriting() {
+      const id = document.getElementById("examId").value.trim();
+      if (!id) {
+        document.getElementById("loginError").style.display = "block";
+        return;
+      }
+      document.getElementById("loginError").style.display = "none";
+      currentId = id;
+      document.getElementById("loginBox").classList.add("hidden");
+      document.getElementById("editorBox").classList.remove("hidden");
+      const saved = localStorage.getItem("draft_" + currentId);
+      if (saved) document.getElementById("writingArea").value = saved;
+      updateCounters();
+    }
+
+    function updateCounters() {
+      const text = document.getElementById("writingArea").value;
+      document.getElementById("charCount").innerText = "Characters: " + text.length;
+      const wordCount = text.trim().split(/\\s+/).filter(Boolean).length;
+      document.getElementById("wordCount").innerText = "Words: " + wordCount;
+    }
+
+    document.getElementById("writingArea").addEventListener("input", () => {
+      updateCounters();
+      localStorage.setItem("draft_" + currentId, document.getElementById("writingArea").value);
+    });
+
+    function submitResponse() {
+      const text = document.getElementById("writingArea").value.trim();
+      if (!text) return alert("Response is empty.");
+      const data = {
+        id: currentId,
+        prompt: currentPrompt,
+        response: text,
+        submittedAt: new Date().toISOString()
+      };
+      localStorage.setItem("submitted_" + currentId, JSON.stringify(data));
+      alert("Submission saved successfully!");
+    }
+
+    function downloadTXT() {
+      const text = document.getElementById("writingArea").value;
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "submission_" + currentId + ".txt";
+      link.click();
+    }
+
+    function toggleTeacherMode() {
+      document.getElementById("loginBox").classList.add("hidden");
+      document.getElementById("teacherLoginBox").classList.remove("hidden");
+    }
+
+    function validateTeacher() {
+      const pass = document.getElementById("teacherPassword").value.trim();
+      if (pass !== "TOK123") {
+        document.getElementById("teacherError").style.display = "block";
+        return;
+      }
+      document.getElementById("teacherLoginBox").classList.add("hidden");
+      document.getElementById("teacherPanel").classList.remove("hidden");
+      listSubmissions();
+    }
+
+    function listSubmissions() {
+      const listDiv = document.getElementById("submissionList");
+      listDiv.innerHTML = "<h4>Submitted IDs:</h4>";
+      for (let key in localStorage) {
+        if (key.startsWith("submitted_")) {
+          const entry = JSON.parse(localStorage.getItem(key));
+          const div = document.createElement("div");
+          div.className = "entry";
+          div.innerHTML = `<strong>${entry.id}</strong> – <button onclick="loadSubmission('${entry.id}')">View</button>`;
+          listDiv.appendChild(div);
+        }
+      }
+    }
+
+    function loadSubmission(id) {
+      const entry = JSON.parse(localStorage.getItem("submitted_" + id));
+      document.getElementById("submissionView").classList.remove("hidden");
+      document.getElementById("viewId").innerText = entry.id;
+      document.getElementById("viewPrompt").innerText = entry.prompt;
+      document.getElementById("viewResponse").value = entry.response;
+      document.getElementById("ao5").value = "";
+      document.getElementById("ao6").value = "";
+      document.getElementById("feedback").value = "";
+      document.getElementById("pupilName").value = "";
+    }
+
+    function saveMarks() {
+      const id = document.getElementById("viewId").innerText;
+      const entry = JSON.parse(localStorage.getItem("submitted_" + id));
+      entry.ao5 = document.getElementById("ao5").value;
+      entry.ao6 = document.getElementById("ao6").value;
+      entry.feedback = document.getElementById("feedback").value;
+      entry.pupilName = document.getElementById("pupilName").value;
+      localStorage.setItem("submitted_" + id, JSON.stringify(entry));
+      alert("Marked and saved.");
+    }
+
+    function downloadTXTTeacher() {
+      const id = document.getElementById("viewId").innerText;
+      const entry = JSON.parse(localStorage.getItem("submitted_" + id));
+      const doc = `Pupil Name: ${entry.pupilName || "__________"}
+Pupil Exam ID: ${entry.id}
+Prompt: ${entry.prompt}
+
+--- Student Response ---
+${entry.response}
+
+--- Teacher Assessment ---
+AO5: ${entry.ao5 || "__"} / 24
+AO6: ${entry.ao6 || "__"} / 16
+
+Feedback:
+${entry.feedback || "None yet."}
+
+Sandra The | Vice Principal   March 2025`;
+
+      const blob = new Blob([doc], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "marked_" + entry.id + ".txt";
+      link.click();
+    }
+  </script>
+</body>
+</html>
